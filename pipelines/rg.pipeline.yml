@@ -38,7 +38,7 @@ stages:
           ScriptType: 'InlineScript'
           Inline: |
             # Variables
-            $WorkingDir = "$(System.DefaultWorkingDirectory)\subscriptions\$($env:RESOURCEGROUPNAME)"
+            $WorkingDir = "$(System.DefaultWorkingDirectory)\resourcegroups\${{ target.resourcegroupName }}"
             $TerraformVersion = "1.0.0"
             $TerraformZip = "terraform_${TerraformVersion}_windows_amd64.zip"
             $TerraformUrl = "https://releases.hashicorp.com/terraform/$TerraformVersion/$TerraformZip"
@@ -77,6 +77,3 @@ stages:
           ScriptPath: 'inline'
           azurePowerShellVersion: 'LatestVersion'
         displayName: 'Install Terraform and Run Commands'
-        env:
-          RESOURCEGROUPNAME: ${{ target.resourcegroupName }}
-          PIPELINETASK: ${{ parameters.pipeline_task }}
