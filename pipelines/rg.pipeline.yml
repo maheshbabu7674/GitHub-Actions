@@ -1,0 +1,76 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+parameters:
+  - name: pipeline_task
+    type: string
+    displayName: "Task"
+    default: 'Plan only'
+    values:
+      - 'Plan only'
+      - 'Plan and Apply'
+      - 'Plan and Destroy'
+
+  - name: targets
+    type: object
+    default:
+    - resourcegroupName: YourResourcegroup
+
+
+variables:
+  - group: resourcegroup-vending
+
+trigger:
+  - none
+
+stages:
+- ${{ each target in parameters.targets }}:
+  - stage: root_module_for_${{ replace(target.resourcegroupName, '-', '_')  }}
+    condition: always()
+    pool:
+      vmImage: 'ubuntu-latest'
+
+    jobs:
+    - job: job_Tf_execution
+      steps:
+
+      - checkout: self
+        displayName: 'Checkout repository'
+
+      - task: AzureCLI@2
+        inputs:
+          azureSubscription: 'sc-image-definition-devops-sc'
+          scriptType: 'bash'
+          inlineScript: |
+            az account show
+
+      - task: TerraformInstaller@0
+        inputs:
+          terraformversion: '1.0.0'
+        displayName: 'Install Terraform version'
+
+      - task: TerraformCLI@0
+        displayName: terraform init
+        inputs:
+          command: 'init'
+          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+
+
+      - task: TerraformCLI@0
+        displayName: terraform plan
+        inputs:
+          command: 'plan'
+          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+
+      - task: TerraformCLI@0
+        displayName: terraform apply
+        inputs:
+          command: 'apply -auto-approve'
+          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+          #commandOptions: '-auto-approve'
+
+      - task: TerraformCLI@0
+        displayName: terraform apply
+        inputs:
+          command: 'destroy -auto-approve'
+          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+          #commandOptions: '-auto-approve'
