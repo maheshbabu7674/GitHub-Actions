@@ -13,7 +13,7 @@ parameters:
   - name: targets
     type: object
     default:
-    - resourcegroupName: YourResourcegroup
+    - storageaccountName: YourResourcegroup
 
 
 variables:
@@ -24,7 +24,7 @@ trigger:
 
 stages:
 - ${{ each target in parameters.targets }}:
-  - stage: root_module_for_${{ replace(target.resourcegroupName, '-', '_')  }}
+  - stage: root_module_for_${{ replace(target.storageaccountName, '-', '_')  }}
     condition: always()
     pool:
       vmImage: 'ubuntu-latest'
@@ -44,7 +44,7 @@ stages:
       - task: PowerShell@2
         displayName: terraform init
         inputs:
-          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          workingDirectory: "$(System.DefaultWorkingDirectory)/storage-accounts/${{ target.storageaccountName }}"
           targetType: inline
           script: |
             terraform init
@@ -58,7 +58,7 @@ stages:
         displayName: terraform plan
         condition: or(eq('${{parameters.pipeline_task}}', 'Plan and Apply'),eq('${{parameters.pipeline_task}}', 'Plan and Destroy'),eq('${{parameters.pipeline_task}}', 'Plan only'))
         inputs:
-          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          workingDirectory: "$(System.DefaultWorkingDirectory)/storage-accounts/${{ target.storageaccountName }}"
           targetType: inline
           script: |
             terraform plan
@@ -72,7 +72,7 @@ stages:
         displayName: terraform apply
         condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
         inputs:
-          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          workingDirectory: "$(System.DefaultWorkingDirectory)/storage-accounts/${{ target.storageaccountName }}"
           targetType: inline
           script: |
             terraform apply -auto-approve
@@ -86,7 +86,7 @@ stages:
         displayName: terraform destroy
         condition: eq('${{parameters.pipeline_task}}', 'Plan and Destroy')
         inputs:
-          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          workingDirectory: "$(System.DefaultWorkingDirectory)/storage-accounts/${{ target.storageaccountName }}"
           targetType: inline
           script: |
             terraform destroy -auto-approve
