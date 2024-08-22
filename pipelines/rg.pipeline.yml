@@ -41,7 +41,7 @@ stages:
             az account show
 
             # Set the working directory for Terraform commands
-            WORKING_DIR="$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+            WORKING_DIR="$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
 
             # Initialize Terraform
             terraform -chdir=$WORKING_DIR init
