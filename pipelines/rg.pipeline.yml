@@ -16,9 +16,6 @@ parameters:
     - resourcegroupName: YourResourcegroup
 
 
-variables:
-  - group: resourcegroup-vending
-
 trigger:
   - none
 
