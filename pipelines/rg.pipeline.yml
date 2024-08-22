@@ -17,7 +17,7 @@ parameters:
 
 
 variables:
-  - group: resource-provisioning
+  - group: provisioning
 
 trigger:
   - none
