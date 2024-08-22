@@ -13,7 +13,7 @@ parameters:
   - name: targets
     type: object
     default:
-    - storageaccountName: YourResourcegroup
+    - storageaccountName: YourStorageAccount
 
 
 variables:
