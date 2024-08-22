@@ -37,7 +37,9 @@ stages:
         displayName: 'Checkout repository'
 
       - task: TerraformInstaller@0
-        displayName: 'Install Terraform latest version'
+        displayName: 'Install Terraform version'
+        inputs:
+          terraformVersion: '1.9.1'
 
       - task: PowerShell@2
         displayName: terraform init
@@ -45,7 +47,7 @@ stages:
           workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
           targetType: inline
           script: |
-            terraform.exe init
+            terraform init
         env:
           ARM_CLIENT_ID : $(ARM_CLIENT_ID)
           ARM_CLIENT_SECRET : $(ARM_CLIENT_SECRET)
