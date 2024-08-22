@@ -54,13 +54,13 @@ stages:
 
       - task: TerraformCLI@0
         displayName: terraform plan
+        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
         inputs:
           command: 'plan'
           workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
 
       - task: TerraformCLI@0
         displayName: terraform apply
-        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
         condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
         inputs:
           command: 'apply -auto-approve'
