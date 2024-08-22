@@ -63,13 +63,16 @@ stages:
 
       - task: TerraformCLI@0
         displayName: terraform apply
+        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
+        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
         inputs:
           command: 'apply -auto-approve'
           workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
           #commandOptions: '-auto-approve'
 
       - task: TerraformCLI@0
-        displayName: terraform apply
+        displayName: terraform destroy
+        condition: eq('${{parameters.pipeline_task}}', 'Plan and Destroy')
         inputs:
           command: 'destroy -auto-approve'
           workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
