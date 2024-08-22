@@ -27,7 +27,7 @@ stages:
       vmImage: 'ubuntu-latest'
 
     jobs:
-    - job: job_Tf_execution
+    - job: tasks
       steps:
 
       - checkout: self
