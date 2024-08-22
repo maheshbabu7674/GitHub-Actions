@@ -15,65 +15,81 @@ parameters:
     default:
     - resourcegroupName: YourResourcegroup
 
+
+variables:
+  - group: resource-provisioning
+
 trigger:
   - none
 
 stages:
 - ${{ each target in parameters.targets }}:
-  - stage: root_module_for_${{ replace(target.resourcegroupName, '-', '_') }}
+  - stage: root_module_for_${{ replace(target.resourcegroupName, '-', '_')  }}
     condition: always()
     pool:
-      vmImage: 'windows-latest'
+      vmImage: 'ubuntu-latest'
 
     jobs:
-    - job:
+    - job: job_Tf_execution
       steps:
 
       - checkout: self
         displayName: 'Checkout repository'
 
-      - task: AzurePowerShell@5
+      - task: TerraformInstaller@0
+        displayName: 'Install Terraform latest version'
+
+      - task: PowerShell@2
+        displayName: terraform init
         inputs:
-          azureSubscription: 'sc-image-definition-devops-sc'
-          ScriptType: 'InlineScript'
-          Inline: |
-            # Variables
-            $WorkingDir = "$(System.DefaultWorkingDirectory)\resourcegroups\${{ target.resourcegroupName }}"
-            $TerraformVersion = "1.0.0"
-            $TerraformZip = "terraform_${TerraformVersion}_windows_amd64.zip"
-            $TerraformUrl = "https://releases.hashicorp.com/terraform/$TerraformVersion/$TerraformZip"
-            $TerraformPath = "$env:ProgramFiles\Terraform"
+          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          targetType: inline
+          script: |
+            terraform.exe init
+        env:
+          ARM_CLIENT_ID : $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET : $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID : $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID : $(ARM_TENANT_ID)
 
-            # Create the Terraform directory
-            if (-not (Test-Path -Path $TerraformPath)) {
-              New-Item -Path $TerraformPath -ItemType Directory
-            }
+      - task: PowerShell@2
+        displayName: terraform plan
+        condition: or(eq('${{parameters.pipeline_task}}', 'Plan and Apply'),eq('${{parameters.pipeline_task}}', 'Plan and Destroy'),eq('${{parameters.pipeline_task}}', 'Plan only'))
+        inputs:
+          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          targetType: inline
+          script: |
+            terraform plan
+        env:
+          ARM_CLIENT_ID : $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET : $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID : $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID : $(ARM_TENANT_ID)
 
-            # Download and install Terraform
-            Invoke-WebRequest -Uri $TerraformUrl -OutFile $TerraformZip
-            Expand-Archive -Path $TerraformZip -DestinationPath $TerraformPath
-            $env:PATH += ";$TerraformPath"
-            terraform --version
+      - task: PowerShell@2
+        displayName: terraform apply
+        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
+        inputs:
+          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          targetType: inline
+          script: |
+            terraform apply -auto-approve
+        env:
+          ARM_CLIENT_ID : $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET : $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID : $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID : $(ARM_TENANT_ID)
 
-            # Initialize Terraform
-            terraform -chdir=$WorkingDir init
-
-            # Plan only
-            if ($env:PIPELINETASK -eq 'Plan only') {
-              terraform -chdir=$WorkingDir plan
-            }
-
-            # Plan and Apply
-            if ($env:PIPELINETASK -eq 'Plan and Apply') {
-              terraform -chdir=$WorkingDir plan
-              terraform -chdir=$WorkingDir apply -auto-approve
-            }
-
-            # Plan and Destroy
-            if ($env:PIPELINETASK -eq 'Plan and Destroy') {
-              terraform -chdir=$WorkingDir plan
-              terraform -chdir=$WorkingDir destroy -auto-approve
-            }
-          ScriptPath: 'inline'
-          azurePowerShellVersion: 'LatestVersion'
-        displayName: 'Install Terraform and Run Commands'
+      - task: PowerShell@2
+        displayName: terraform destroy
+        condition: eq('${{parameters.pipeline_task}}', 'Plan and Destroy')
+        inputs:
+          workingDirectory: "$(System.DefaultWorkingDirectory)/resourcegroups/${{ target.resourcegroupName }}"
+          targetType: inline
+          script: |
+            terraform destroy -auto-approve
+        env:
+          ARM_CLIENT_ID : $(ARM_CLIENT_ID)
+          ARM_CLIENT_SECRET : $(ARM_CLIENT_SECRET)
+          ARM_SUBSCRIPTION_ID : $(ARM_SUBSCRIPTION_ID)
+          ARM_TENANT_ID : $(ARM_TENANT_ID)
