@@ -15,7 +15,6 @@ parameters:
     default:
     - resourcegroupName: YourResourcegroup
 
-
 trigger:
   - none
 
@@ -38,39 +37,29 @@ stages:
           azureSubscription: 'sc-image-definition-devops-sc'
           scriptType: 'bash'
           inlineScript: |
+            # Show Azure account details
             az account show
 
-      - task: TerraformInstaller@0
-        inputs:
-          terraformversion: '1.0.0'
-        displayName: 'Install Terraform version'
+            # Set the working directory for Terraform commands
+            WORKING_DIR="$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
 
-      - task: TerraformCLI@0
-        displayName: terraform init
-        inputs:
-          command: 'init'
-          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+            # Initialize Terraform
+            terraform -chdir=$WORKING_DIR init
 
+            # Plan only
+            if [ '${{parameters.pipeline_task}}' == 'Plan only' ]; then
+              terraform -chdir=$WORKING_DIR plan
+            fi
 
-      - task: TerraformCLI@0
-        displayName: terraform plan
-        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
-        inputs:
-          command: 'plan'
-          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
+            # Plan and Apply
+            if [ '${{parameters.pipeline_task}}' == 'Plan and Apply' ]; then
+              terraform -chdir=$WORKING_DIR plan
+              terraform -chdir=$WORKING_DIR apply -auto-approve
+            fi
 
-      - task: TerraformCLI@0
-        displayName: terraform apply
-        condition: eq('${{parameters.pipeline_task}}', 'Plan and Apply')
-        inputs:
-          command: 'apply -auto-approve'
-          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
-          #commandOptions: '-auto-approve'
-
-      - task: TerraformCLI@0
-        displayName: terraform destroy
-        condition: eq('${{parameters.pipeline_task}}', 'Plan and Destroy')
-        inputs:
-          command: 'destroy -auto-approve'
-          workingDirectory: "$(System.DefaultWorkingDirectory)/subscriptions/${{ target.resourcegroupName }}"
-          #commandOptions: '-auto-approve'
+            # Plan and Destroy
+            if [ '${{parameters.pipeline_task}}' == 'Plan and Destroy' ]; then
+              terraform -chdir=$WORKING_DIR plan
+              terraform -chdir=$WORKING_DIR destroy -auto-approve
+            fi
+        displayName: 'Run Terraform commands via Azure CLI'
