@@ -1,5 +1,5 @@
 resource "azurerm_storage_account" "example" {
-  name                     = "striker-st-01"
+  name                     = "strikerst01"
   resource_group_name      = "striker-rg"
   location                 = "eastus2"
   account_tier             = "Standard"
