@@ -1,12 +1,13 @@
 name: 'Terraform Apply'
 
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: 
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions tab
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 jobs:
   terraform:
@@ -21,10 +22,10 @@ jobs:
         with:
           terraform_version: 1.5.0
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # - name: Azure Login
+      #   uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Terraform Init
         run: terraform init
