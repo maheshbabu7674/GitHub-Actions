@@ -1,4 +1,4 @@
-name: 'Terraform Apply'
+name: 'Terraform Apply For ResourceGroups'
 
 on: 
   workflow_dispatch: # Allows manual triggering from the GitHub Actions tab
