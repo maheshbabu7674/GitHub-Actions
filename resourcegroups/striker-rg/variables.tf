@@ -1,7 +1,7 @@
 variable "name" {
   description = "The name of the resource group"
   type        = string
-  default     = "striker-rg"
+  default     = "striker-rg-01"
 }
 
 variable "location" {
