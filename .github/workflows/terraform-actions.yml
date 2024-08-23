@@ -39,13 +39,13 @@ jobs:
           cd striker-rg
           terraform plan 
 
-      - name: Terraform Apply
-        run: |
-          cd resourcegroups
-          cd striker-rg
-          terraform apply -auto-approve 
+      # - name: Terraform Apply
+      #   run: |
+      #     cd resourcegroups
+      #     cd striker-rg
+      #     terraform apply -auto-approve 
           
-      - name: Terraform Apply
+      - name: Terraform Destroy
         run: |
           cd resourcegroups
           cd striker-rg
