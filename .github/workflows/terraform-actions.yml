@@ -28,10 +28,19 @@ jobs:
       #     creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Terraform Init
-        run: terraform init
+        run: |
+          cd resourcegroups
+          cd striker-rg
+          terraform init 
 
       - name: Terraform Plan
-        run: terraform plan striker-rg
+        run: |
+          cd resourcegroups
+          cd striker-rg
+          terraform plan 
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve striker-rg
+        run: |
+          cd resourcegroups
+          cd striker-rg
+          terraform apply -auto-approve 
