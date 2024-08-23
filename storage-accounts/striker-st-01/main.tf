@@ -17,7 +17,7 @@ provider "azurerm"{
 }
 
 resource "azurerm_storage_account" "example" {
-  name                     = "striker-st-02"
+  name                     = "strikerst02"
   resource_group_name      = "striker-rg"
   location                 = "eastus2"
   account_tier             = "Standard"
