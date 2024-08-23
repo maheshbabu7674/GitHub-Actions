@@ -49,4 +49,4 @@ jobs:
         run: |
           cd resourcegroups
           cd striker-rg
-          terraform destroy -auto-approve     
+          terraform destroy -target=azurerm_resource_group.this -auto-approve    
