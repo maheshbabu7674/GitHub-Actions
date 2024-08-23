@@ -44,3 +44,9 @@ jobs:
           cd resourcegroups
           cd striker-rg
           terraform apply -auto-approve 
+          
+      - name: Terraform Apply
+        run: |
+          cd resourcegroups
+          cd striker-rg
+          terraform destroy -auto-approve     
