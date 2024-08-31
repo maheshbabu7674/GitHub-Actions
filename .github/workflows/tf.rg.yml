@@ -2,6 +2,15 @@ name: 'Terraform Apply For ResourceGroups'
 
 on: 
   workflow_dispatch: # Allows manual triggering from the GitHub Actions tab
+     inputs:
+      environment:
+        description: 'Select environment to deploy'
+        required: true
+        type: choice
+        options:
+          - Development
+          - Staging
+          - Production
   # push:
   #   branches:
   #     - main
