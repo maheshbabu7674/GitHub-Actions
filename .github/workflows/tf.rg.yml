@@ -1,61 +1,70 @@
-name: 'Terraform Apply For ResourceGroups'
+name: Terraform Workflow
 
-on: 
-  workflow_dispatch: # Allows manual triggering from the GitHub Actions tab
-     inputs:
-      environment:
-        description: 'Select environment to deploy'
+on:
+  workflow_dispatch:
+    inputs:
+      pipeline_task:
+        description: 'Task'
         required: true
+        default: 'Plan only'
         type: choice
         options:
-          - Development
-          - Staging
-          - Production
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
+          - 'Plan only'
+          - 'Plan and Apply'
+          - 'Plan and Destroy'
+      targets:
+        description: 'Resource Groups'
+        required: true
+        default: '[{"resourcegroupName": "YourResourcegroup"}]'
+        type: string
 
 jobs:
   terraform:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Terraform
+      - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
-
-      # - name: Azure Login
-      #   uses: azure/login@v1
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+          terraform_version: 1.9.1
 
       - name: Terraform Init
-        run: |
-          cd resourcegroups
-          cd striker-rg
-          terraform init 
+        run: terraform init
+        working-directory: ${{ github.workspace }}/resourcegroups/${{ fromJson(github.event.inputs.targets)[0].resourcegroupName }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
       - name: Terraform Plan
-        run: |
-          cd resourcegroups
-          cd striker-rg
-          terraform plan 
+        run: terraform plan
+        working-directory: ${{ github.workspace }}/resourcegroups/${{ fromJson(github.event.inputs.targets)[0].resourcegroupName }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        if: ${{ github.event.inputs.pipeline_task == 'Plan and Apply' || github.event.inputs.pipeline_task == 'Plan and Destroy' || github.event.inputs.pipeline_task == 'Plan only' }}
 
-      # - name: Terraform Apply
-      #   run: |
-      #     cd resourcegroups
-      #     cd striker-rg
-      #     terraform apply -auto-approve 
-          
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ${{ github.workspace }}/resourcegroups/${{ fromJson(github.event.inputs.targets)[0].resourcegroupName }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        if: ${{ github.event.inputs.pipeline_task == 'Plan and Apply' }}
+
       - name: Terraform Destroy
-        run: |
-          cd resourcegroups
-          cd striker-rg
-          terraform destroy -target=azurerm_resource_group.this -auto-approve    
+        run: terraform destroy -auto-approve
+        working-directory: ${{ github.workspace }}/resourcegroups/${{ fromJson(github.event.inputs.targets)[0].resourcegroupName }}
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        if: ${{ github.event.inputs.pipeline_task == 'Plan and Destroy' }}
